@@ -84,9 +84,9 @@
 </head>
 <body>
 
-    <div class="sidebar">
+<div class="sidebar">
         <h2>Dashboard Admin</h2>
-        <a href="#">Pegawai</a>
+        <a href="{{ route('pegawai') }}" class="{{ request()->is('pegawai') ? 'active' : '' }}">Pegawai</a>
         <a href="#">Laporan Pegawai</a>
         <a href="#">Izin Pegawai</a>
         <a href="#">Atur Jam Kerja</a>
@@ -96,6 +96,7 @@
         </form>
     </div>
 
+    <!-- Content -->
     <div class="content">
         <div class="stats">
             <div class="stat-box yellow">Pegawai Masuk</div>
