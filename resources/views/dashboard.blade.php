@@ -87,9 +87,9 @@
 <div class="sidebar">
         <h2>Dashboard Admin</h2>
         <a href="{{ route('pegawai') }}" class="{{ request()->is('pegawai') ? 'active' : '' }}">Pegawai</a>
-        <a href="#">Laporan Pegawai</a>
+        <a href="{{ route('set_jam_kerja') }}" class="{{ request()->is('set_jam_kerja') ? 'active' : '' }}">Atur jam kerja</a>
         <a href="#">Izin Pegawai</a>
-        <a href="#">Atur Jam Kerja</a>
+        <a href="#">Laporan Pehawai</a>
         <form action="{{ route('logout') }}" method="POST">
             @csrf
             <button type="submit" class="logout-btn">Log Out</button>
