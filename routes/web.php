@@ -30,4 +30,13 @@ Route::get('/set_jam_kerja', function () {
     return view('set_jam_kerja');
 })->name('set_jam_kerja');
 
+Route::get('/laporan_absen', function () {
+    return view('laporan_absen');
+})->name('laporan_absen');
+
+Route::get('/atur_izin', function () {
+    return view('atur_izin');
+})->name('atur_izin');
+
+
 });
