@@ -11,16 +11,14 @@ use Illuminate\Support\Str;
 
 class LoginController extends Controller
 {
-    // Menampilkan halaman login
     public function showLoginForm()
     {
-        return view('auth.login'); // Pastikan file view ini ada di resources/views/auth/login.blade.php
+        return view('auth.login'); 
     }
 
-    // Proses login dengan error handling
     public function login(Request $request)
     {
-        $this->checkLoginAttempts($request); // Cek batas percobaan login
+        $this->checkLoginAttempts($request); 
 
         $credentials = $request->validate([
             'email' => 'required|email',
@@ -28,19 +26,19 @@ class LoginController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate(); // Mencegah session fixation
-            RateLimiter::clear($this->throttleKey($request)); // Reset hitungan batas percobaan login
-            return redirect()->route('dashboard'); // Arahkan ke dashboard setelah login
+            $request->session()->regenerate();
+            RateLimiter::clear($this->throttleKey($request)); 
+            return redirect()->route('dashboard'); 
         }
 
-        $this->incrementLoginAttempts($request); // Tambah hitungan percobaan login
+        $this->incrementLoginAttempts($request); 
 
         throw ValidationException::withMessages([
             'email' => 'Email or Password is wrong.',
         ]);
     }
 
-    // Logout
+
     public function logout(Request $request)
     {
         Auth::logout();
@@ -49,7 +47,6 @@ class LoginController extends Controller
         return redirect()->route('login');
     }
 
-    // Fungsi untuk membatasi percobaan login
     private function checkLoginAttempts(Request $request)
     {
         if (RateLimiter::tooManyAttempts($this->throttleKey($request), 5)) {
@@ -59,13 +56,11 @@ class LoginController extends Controller
         }
     }
 
-    // Tambah hitungan percobaan login
     private function incrementLoginAttempts(Request $request)
     {
-        RateLimiter::hit($this->throttleKey($request), 60); // Reset setelah 60 detik
+        RateLimiter::hit($this->throttleKey($request), 60);
     }
 
-    // Kunci unik untuk membatasi percobaan login berdasarkan email dan IP
     private function throttleKey(Request $request)
     {
         return Str::lower($request->input('email')) . '|' . $request->ip();

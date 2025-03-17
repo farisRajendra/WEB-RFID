@@ -82,7 +82,7 @@
         }
     </style>
 </head>
-<body>
+<body>  
 
 <div class="sidebar">
         <h2>Dashboard Admin</h2>
