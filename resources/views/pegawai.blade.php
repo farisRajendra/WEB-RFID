@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Manajemen Pegawai</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
@@ -27,22 +28,21 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
-            
         }
         .add-btn {
-    background: white;
-    color: #0077b6; /* Warna biru */
-    padding: 10px;
-    cursor: pointer;
-    border: 2px solid #0077b6; /* Garis biru */
-    border-radius: 5px;
-    font-size: 18px;
-    font-weight: bold;
-}
-.add-btn:hover {
-    background: #f0f0f0; /* Warna abu-abu terang saat hover */
-}
-        input[type="text"] {
+            background: white;
+            color: #0077b6;
+            padding: 10px;
+            cursor: pointer;
+            border: 2px solid #0077b6;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .add-btn:hover {
+            background: #f0f0f0;
+        }
+        input[type="text"], input[type="date"] {
             padding: 8px;
             width: 200px;
             border-radius: 5px;
@@ -74,6 +74,7 @@
             top: 20%;
             left: 25%;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
         }
         .form-container input, .form-container button {
             display: block;
@@ -88,24 +89,33 @@
             padding: 10px;
             cursor: pointer;
         }
-        .icon-btn {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background 0.3s;
-}
-.icon-btn:hover {
-    background: #f0f0f0; /* Warna abu-abu saat hover */
-}
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .edit-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .delete-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <h1>Sistem Manajemen Pegawai</h1>
         <div class="header">
-            <button class="add-btn" onclick="openForm()">➕</button>
+            <button class="add-btn" onclick="openForm()">➕ Tambah Pegawai</button>
             <input type="text" id="search" placeholder="Cari Nama Pegawai" onkeyup="searchTable()">
         </div>
         <table>
@@ -116,90 +126,210 @@
                     <th>Jabatan</th>
                     <th>Tanggal Lahir</th>
                     <th>RFID Id</th>
-                    <th>Action</th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody id="pegawai-list">
+                <!-- Data akan dimasukkan di sini -->
             </tbody>
         </table>
     </div>
+
     <div class="form-container" id="pegawaiForm">
-        <h2>Tambah/Edit Pegawai</h2>
-        <input type="hidden" id="editIndex">
+        <h2 id="formTitle">Tambah Pegawai</h2>
+        <input type="hidden" id="pegawaiId">
         <input type="text" id="nama" placeholder="Nama Pegawai">
         <input type="text" id="jabatan" placeholder="Jabatan">
-        <input type="date" id="tgl_lahir">
+        <input type="date" id="tanggal_lahir" placeholder="Tanggal Lahir">
         <input type="text" id="rfid" placeholder="RFID Id">
         <button onclick="savePegawai()">Simpan</button>
         <button class="close-btn" onclick="closeForm()">Tutup</button>
     </div>
+
     <script>
-        let pegawai = [];
-        function openForm(index = null) {
+        // Get CSRF token from meta tag
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        function openForm(id = null) {
             document.getElementById("pegawaiForm").style.display = "block";
-            if (index !== null) {
-                document.getElementById("editIndex").value = index;
-                document.getElementById("nama").value = pegawai[index].nama;
-                document.getElementById("jabatan").value = pegawai[index].jabatan;
-                document.getElementById("tgl_lahir").value = pegawai[index].tgl_lahir;
-                document.getElementById("rfid").value = pegawai[index].rfid;
+            if (id) {
+                // Mode edit: Ambil data dari server
+                document.getElementById("formTitle").innerText = "Edit Pegawai";
+                fetch(`/pegawai/${id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById("pegawaiId").value = data.id;
+                    document.getElementById("nama").value = data.nama;
+                    document.getElementById("jabatan").value = data.jabatan;
+                    document.getElementById("tanggal_lahir").value = data.tanggal_lahir.split('T')[0]; // Format tanggal
+                    document.getElementById("rfid").value = data.rfid ? data.rfid.rfid : '';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("Terjadi kesalahan saat memuat data pegawai!");
+                });
             } else {
-                document.getElementById("editIndex").value = "";
+                // Mode tambah: Reset form
+                document.getElementById("formTitle").innerText = "Tambah Pegawai";
+                document.getElementById("pegawaiId").value = "";
                 document.getElementById("nama").value = "";
                 document.getElementById("jabatan").value = "";
-                document.getElementById("tgl_lahir").value = "";
+                document.getElementById("tanggal_lahir").value = "";
                 document.getElementById("rfid").value = "";
             }
         }
+
         function closeForm() {
             document.getElementById("pegawaiForm").style.display = "none";
         }
-        function savePegawai() {
-            let index = document.getElementById("editIndex").value;
-            let data = {
-                nama: document.getElementById("nama").value,
-                jabatan: document.getElementById("jabatan").value,
-                tgl_lahir: document.getElementById("tgl_lahir").value,
-                rfid: document.getElementById("rfid").value
-            };
-            if (index === "") {
-                pegawai.push(data);
-            } else {
-                pegawai[index] = data;
-            }
-            renderTable();
-            closeForm();
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}-${month}-${year}`;
         }
-        function renderTable() {
-            let list = document.getElementById("pegawai-list");
-            list.innerHTML = "";
-            pegawai.forEach((p, index) => {
-                let row = `<tr>
-                    <td>${index + 1}</td>
-                    <td>${p.nama}</td>
-                    <td>${p.jabatan}</td>
-                    <td>${p.tgl_lahir}</td>
-                    <td>${p.rfid}</td>
-                    <td>
-                        <button class="icon-btn" onclick="openForm(${index})">✏️</button>
-                        <button class="icon-btn" onclick="deletePegawai(${index})">🗑️</button>
-                    </td>
-                </tr>`;
-                list.innerHTML += row;
+
+        function savePegawai() {
+            const id = document.getElementById("pegawaiId").value;
+            const nama = document.getElementById("nama").value;
+            const jabatan = document.getElementById("jabatan").value;
+            const tanggal_lahir = document.getElementById("tanggal_lahir").value;
+            const rfid = document.getElementById("rfid").value;
+
+            // Basic validation
+            if (!nama || !jabatan || !tanggal_lahir) {
+                alert("Mohon isi semua field yang diperlukan!");
+                return;
+            }
+
+            const data = { nama, jabatan, tanggal_lahir, rfid };
+            const url = id ? `/pegawai/${id}` : '/pegawai/store';
+            const method = id ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`Server error: ${response.status} - ${text}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert(data.message || "Data berhasil disimpan!");
+                closeForm();
+                loadPegawai();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Terjadi kesalahan saat menyimpan data: " + error.message);
             });
         }
-        function deletePegawai(index) {
-            pegawai.splice(index, 1);
-            renderTable();
+
+        function loadPegawai() {
+            fetch('/pegawai', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const list = document.getElementById("pegawai-list");
+                list.innerHTML = "";
+                data.forEach((p, index) => {
+                    const formattedDate = formatDate(p.tanggal_lahir);
+                    const rfidValue = p.rfid ? p.rfid.rfid : '-';
+                    const row = `<tr>
+                        <td>${index + 1}</td>
+                        <td>${p.nama}</td>
+                        <td>${p.jabatan}</td>
+                        <td>${formattedDate}</td>
+                        <td>${rfidValue}</td>
+                        <td class="action-buttons">
+                            <button class="edit-btn" onclick="openForm(${p.id})">✏️ Edit</button>
+                            <button class="delete-btn" onclick="deletePegawai(${p.id})">🗑️ Hapus</button>
+                        </td>
+                    </tr>`;
+                    list.innerHTML += row;
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Terjadi kesalahan saat memuat data!");
+            });
         }
+
+        function deletePegawai(id) {
+            if (confirm("Apakah Anda yakin ingin menghapus pegawai ini?")) {
+                fetch(`/pegawai/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message || "Pegawai berhasil dihapus!");
+                    loadPegawai();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("Terjadi kesalahan saat menghapus data!");
+                });
+            }
+        }
+
         function searchTable() {
-            let input = document.getElementById("search").value.toLowerCase();
-            let rows = document.querySelectorAll("#pegawai-list tr");
+            const input = document.getElementById("search").value.toLowerCase();
+            const rows = document.querySelectorAll("#pegawai-list tr");
             rows.forEach(row => {
-                let nama = row.cells[1].textContent.toLowerCase();
+                const nama = row.cells[1].textContent.toLowerCase();
                 row.style.display = nama.includes(input) ? "" : "none";
             });
         }
+
+        // Initialize by loading data when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPegawai();
+        });
     </script>
 </body>
 </html>

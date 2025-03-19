@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PegawaiController;
 
 Route::get('/', function() {
     return redirect()->route('login');
@@ -22,9 +23,20 @@ Route::post('/register', [RegisterController::class, 'register']);
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-Route::get('/pegawai', function () {
-    return view('pegawai');
-}) ->name('pegawai');
+// Route::get('/pegawai', [PegawaiController::class, 'index'])->name('pegawai');
+// Route::prefix('pegawai')->group(function () {
+//     Route::post('/store', [PegawaiController::class, 'store'])->name('pegawai.store'); 
+//     Route::delete('/{id}', [PegawaiController::class, 'destroy'])->name('pegawai.destroy'); 
+// });
+
+Route::get('/pegawai', [PegawaiController::class, 'index'])->name('pegawai');
+
+Route::prefix('pegawai')->group(function () {
+    Route::post('/store', [PegawaiController::class, 'store'])->name('pegawai.store');
+    Route::get('/{id}', [PegawaiController::class, 'show'])->name('pegawai.show'); 
+    Route::put('/{id}', [PegawaiController::class, 'update'])->name('pegawai.update'); 
+    Route::delete('/{id}', [PegawaiController::class, 'destroy'])->name('pegawai.destroy'); 
+});
 
 Route::get('/set_jam_kerja', function () {
     return view('set_jam_kerja');
