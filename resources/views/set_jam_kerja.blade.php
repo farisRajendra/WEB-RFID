@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pengaturan Jam Kerja</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -47,11 +48,6 @@
             border: 1px solid #ccc;
             border-radius: 5px;
         }
-        .info {
-            font-size: 12px;
-            color: gray;
-            margin-bottom: 10px;
-        }
         .output {
             display: flex;
             justify-content: space-between;
@@ -88,31 +84,49 @@
         <h1>Pengaturan Jam Kerja</h1>
         <p>Atur Jadwal Jam Masuk & Jam Keluar</p>
     </div>
-
+    
     <label for="jamMasuk">Jam Masuk:</label>
-    <input type="time" id="jamMasuk" value="08:00">
-    <p class="info">Jam Masuk / Jam Kerja</p>
-
+    <input type="time" id="jamMasuk" value="{{ substr($jam_kerjas->jam_masuk, 0, 5) }}">
+        
     <label for="jamKeluar">Jam Keluar:</label>
-    <input type="time" id="jamKeluar" value="21:00">
-    <p class="info">Jam Keluar / Jam Pulang</p>
-
-
+    <input type="time" id="jamKeluar" value="{{ substr($jam_kerjas->jam_keluar, 0, 5) }}">
+    
     <div class="output">
-        <div class="box" id="outputMasuk">08:00:00</div>
-        <div class="box" id="outputKeluar">21:00:00</div>
+        <div class="box" id="outputMasuk">{{ $jam_kerjas->jam_masuk }}</div>
+        <div class="box" id="outputKeluar">{{ $jam_kerjas->jam_keluar }}</div>
     </div>
-
-    <button class="submit-btn" onclick="updateWaktu()">Submit</button>
+    
+    <button class="submit-btn" onclick="submitData()">Submit</button>
 </div>
 
 <script>
-    function updateWaktu() {
-        let jamMasuk = document.getElementById("jamMasuk").value + ":00";
-        let jamKeluar = document.getElementById("jamKeluar").value + ":00";
+    function submitData() {
+        let jamMasuk = document.getElementById("jamMasuk").value;
+        let jamKeluar = document.getElementById("jamKeluar").value;
         
-        document.getElementById("outputMasuk").innerText = jamMasuk;
-        document.getElementById("outputKeluar").innerText = jamKeluar;
+        // Update tampilan
+        document.getElementById("outputMasuk").textContent = jamMasuk + ":00";
+        document.getElementById("outputKeluar").textContent = jamKeluar + ":00";
+        
+        fetch('/save-jam-kerja', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ 
+                jam_masuk: jamMasuk, 
+                jam_keluar: jamKeluar 
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan!');
+        });
     }
 </script>
 
