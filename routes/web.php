@@ -32,12 +32,6 @@ Route::prefix('pegawai')->group(function () {
     Route::delete('/{id}', [PegawaiController::class, 'destroy'])->name('pegawai.destroy'); 
 });
 
-// Route::get('/set_jam_kerja', function () {
-//     return view('set_jam_kerja');
-// })->name('set_jam_kerja');
-// Route::get('/set_jam_kerja', [JamKerjaController::class, 'show'])->name('set_jam_kerja');
-// Route::post('/save-jam-kerja', [JamKerjaController::class, 'store'])->name('save_jam_kerja');
-
 Route::get('/set_jam_kerja', [JamKerjaController::class, 'show'])->name('set_jam_kerja');
 Route::post('/save-jam-kerja', [JamKerjaController::class, 'store'])->name('save_jam_kerja');
 
