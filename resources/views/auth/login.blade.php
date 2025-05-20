@@ -118,7 +118,7 @@
 <body>
     <div class="container">
         <div class="left">
-            <img src="{{ asset('images/Login.png') }}" alt="Login Illustration">
+               <img src="{{ asset('img/loginnn.png') }}" alt="Login Illustration">
         </div>
         <div class="right">
             <h2>Sign In</h2>
