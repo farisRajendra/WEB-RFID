@@ -57,6 +57,15 @@
             font-weight: bold;
             width: 200px;
             color: white;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: white;
         }
 
         .yellow { background: #fbbc04; }
@@ -82,9 +91,8 @@
         }
     </style>
 </head>
-<body>  
-
-<div class="sidebar">
+<body>
+   <div class="sidebar">
         <h2>Dashboard Admin</h2>
         <a href="{{ route('pegawai') }}" class="{{ request()->is('pegawai') ? 'active' : '' }}">Pegawai</a>
         <a href="{{ route('set_jam_kerja') }}" class="{{ request()->is('set_jam_kerja') ? 'active' : '' }}">Atur Jam Kerja</a>
@@ -99,13 +107,111 @@
     <!-- Content -->
     <div class="content">
         <div class="stats">
-            <div class="stat-box yellow">Pegawai Masuk</div>
-            <div class="stat-box red">Pegawai Tidak Masuk</div>
-            <div class="stat-box blue">Total Pegawai</div>
+            <div class="stat-box yellow">
+                <div>Pegawai Masuk</div>
+                <div class="stat-number">{{ $data['pegawai_masuk'] }}</div>
+            </div>
+            <div class="stat-box red">
+                <div>Pegawai Tidak Masuk</div>
+                <div class="stat-number">{{ $data['pegawai_tidak_masuk'] }}</div>
+            </div>
+            <div class="stat-box blue">
+                <div>Total Pegawai</div>
+                <div class="stat-number">{{ $data['total_pegawai'] }}</div>
+            </div>
         </div>
-
-        <img src="{{ asset('images/dashbord.png') }}" alt="Grafik Dashboard" width="500">
+        
+        <!-- Chart Container -->
+        <div style="width: 800px; height: 400px; margin-top: 30px;">
+            <canvas id="attendanceChart"></canvas>
+        </div>
     </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Data dari Laravel Controller
+        const chartData = @json($chartData);
+        
+        // Setup Chart
+        const ctx = document.getElementById('attendanceChart').getContext('2d');
+        const attendanceChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartData.labels,
+                datasets: [
+                    {
+                        label: 'Pegawai Masuk',
+                        data: chartData.pegawai_masuk,
+                        backgroundColor: 'rgba(66, 133, 244, 0.8)',
+                        borderColor: 'rgba(66, 133, 244, 1)',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Pegawai Tidak Masuk',
+                        data: chartData.pegawai_tidak_masuk,
+                        backgroundColor: 'rgba(234, 67, 53, 0.8)',
+                        borderColor: 'rgba(234, 67, 53, 1)',
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Grafik Kehadiran Pegawai (Seminggu Terakhir)',
+                        font: {
+                            size: 18,
+                            weight: 'bold'
+                        },
+                        padding: 20
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            font: {
+                                size: 14
+                            },
+                            padding: 20
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Jumlah Pegawai',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Hari',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
 
 </body>
 </html>
