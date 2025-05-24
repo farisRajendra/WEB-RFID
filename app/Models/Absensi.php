@@ -10,15 +10,15 @@ class Absensi extends Model
 {
     use HasFactory;
 
-    protected $table = 'absences';  // <-- ini supaya Laravel pakai tabel absences
+    protected $table = 'absences';
 
     protected $fillable = [
-    'pegawai_id',
-    'rfid',
-    'status',
-    'created_at',
-    'updated_at'
-];
+        'pegawai_id',
+        'tanggal',        // Tambahkan ini
+        'status',
+        // Hapus 'rfid' karena sudah tidak ada
+        // created_at dan updated_at tidak perlu ada di fillable
+    ];
 
     public function pegawai()
     {
