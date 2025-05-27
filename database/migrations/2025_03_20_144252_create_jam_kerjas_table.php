@@ -10,7 +10,8 @@ return new class extends Migration {
         Schema::create('jam_kerjas', function (Blueprint $table) {
             $table->id();
             $table->time('jam_masuk')->default('08:00:00');
-            $table->time('jam_keluar')->default('21:00:00');
+            $table->time('jam_keluar')->default('16:00:00');
+            $table->integer('toleransi_masuk')->default(15); // Tambahkan toleransi keterlambatan
             $table->timestamps();
         });
     }

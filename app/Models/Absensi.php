@@ -10,16 +10,25 @@ class Absensi extends Model
 {
     use HasFactory;
 
-    protected $table = 'absences';
+    protected $table = 'absences'; // Pastikan ini cocok dengan nama tabel di database
 
     protected $fillable = [
         'pegawai_id',
-        'tanggal',        // Tambahkan ini
+        'tanggal',
+        'jam_masuk',
+        'jam_pulang',
         'status',
-        // Hapus 'rfid' karena sudah tidak ada
-        // created_at dan updated_at tidak perlu ada di fillable
     ];
 
+    public $timestamps = true;
+
+    protected $casts = [
+        'tanggal' => 'date',
+    ];
+
+    /**
+     * Relasi ke tabel pegawai
+     */
     public function pegawai()
     {
         return $this->belongsTo(Pegawai::class, 'pegawai_id');

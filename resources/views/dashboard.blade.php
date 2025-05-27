@@ -97,7 +97,7 @@
         <a href="{{ route('pegawai') }}" class="{{ request()->is('pegawai') ? 'active' : '' }}">Pegawai</a>
         <a href="{{ route('set_jam_kerja') }}" class="{{ request()->is('set_jam_kerja') ? 'active' : '' }}">Atur Jam Kerja</a>
         <a href="{{ route('atur_izin') }}" class="{{ request()->is('atur_izin') ? 'active' : '' }}">Izin Pegawai</a>
-        <a href="{{ route('laporan_absen') }}" class="{{ request()->is('laporan_absen') ? 'active' : '' }}">Laporan Absen</a>
+        <a href="{{ route('laporan.index') }}" class="{{ request()->routeIs('laporan.index') ? 'active' : '' }}">Laporan Absen</a>
         <form action="{{ route('logout') }}" method="POST">
             @csrf
             <button type="submit" class="logout-btn">Log Out</button>

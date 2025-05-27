@@ -13,6 +13,13 @@ class JamKerja extends Model
 
     protected $fillable = [
         'jam_masuk',
-        'jam_keluar'
+        'jam_keluar',
+        'toleransi_masuk',
+    ];
+
+    protected $casts = [
+        'jam_masuk' => 'string',   // tipe time di DB biasanya string
+        'jam_keluar' => 'string',
+        'toleransi_masuk' => 'integer', // asumsikan ini menit sebagai integer
     ];
 }

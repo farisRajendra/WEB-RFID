@@ -7,6 +7,10 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\JamKerjaController;
 use App\Http\Controllers\LaporanAbsensiController;
+use App\Http\Controllers\Api\AbsensiController;
+use App\Http\Controllers\IzinController;
+
+
 
 // Redirect root ke halaman login
 Route::get('/', function() {
@@ -46,15 +50,21 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/save-jam-kerja', [JamKerjaController::class, 'store'])->name('save_jam_kerja');
 
     // Laporan Absensi via Controller (jika ingin tampil dari DB)
-    Route::get('/laporan_absen', [LaporanAbsensiController::class, 'index'])->name('laporan_absen');
-
+    Route::get('/laporan', [LaporanAbsensiController::class, 'index'])->name('laporan.index');
     // Halaman atur izin (bisa dibuat controller jika perlu logic)
     Route::get('/atur_izin', function () {
         return view('atur_izin');
     })->name('atur_izin');
 
     //laporan//
-    Route::get('/laporan', [LaporanAbsensiController::class, 'index'])->name('laporan.absensi');
+Route::get('/laporan', [LaporanAbsensiController::class, 'index'])->name('laporan.index');
+
+    Route::post('/absensi', [AbsensiController::class, 'store']);
+
+
+Route::get('/izin', [IzinController::class, 'index'])->name('izin.index');
+Route::post('/izin', [IzinController::class, 'store'])->name('izin.store');
+
 
 });
     

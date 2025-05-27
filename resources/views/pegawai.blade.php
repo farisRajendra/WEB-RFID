@@ -109,6 +109,14 @@
             cursor: pointer;
             border-radius: 5px;
         }
+        
+        /* Minimal RFID auto-fill styles */
+        .rfid-status {
+            font-size: 12px;
+            color: #28a745;
+            margin-top: 5px;
+            min-height: 15px;
+        }
     </style>
 </head>
 <body>
@@ -142,6 +150,7 @@
         <input type="text" id="jabatan" placeholder="Jabatan">
         <input type="date" id="tanggal_lahir" placeholder="Tanggal Lahir">
         <input type="text" id="rfid" placeholder="RFID Id">
+        <div class="rfid-status" id="rfidStatus"></div>
         <button onclick="savePegawai()">Simpan</button>
         <button class="close-btn" onclick="closeForm()">Tutup</button>
     </div>
@@ -150,8 +159,14 @@
         // Get CSRF token from meta tag
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         
+        // RFID Auto-fill variables - HANYA TAMBAHAN INI
+        let rfidCheckInterval = null;
+        let isFormOpen = false;
+        
         function openForm(id = null) {
             document.getElementById("pegawaiForm").style.display = "block";
+            isFormOpen = true; // Tambahan untuk auto-fill
+            
             if (id) {
                 // Mode edit: Ambil data dari server
                 document.getElementById("formTitle").innerText = "Edit Pegawai";
@@ -172,7 +187,7 @@
                     document.getElementById("pegawaiId").value = data.id;
                     document.getElementById("nama").value = data.nama;
                     document.getElementById("jabatan").value = data.jabatan;
-                    document.getElementById("tanggal_lahir").value = data.tanggal_lahir.split('T')[0]; // Format tanggal
+                    document.getElementById("tanggal_lahir").value = data.tanggal_lahir.split('T')[0];
                     document.getElementById("rfid").value = data.rfid ? data.rfid.rfid : '';
                 })
                 .catch(error => {
@@ -187,12 +202,59 @@
                 document.getElementById("jabatan").value = "";
                 document.getElementById("tanggal_lahir").value = "";
                 document.getElementById("rfid").value = "";
+                
+                // TAMBAHAN: Start auto-checking untuk RFID
+                startRfidAutoCheck();
             }
         }
 
         function closeForm() {
             document.getElementById("pegawaiForm").style.display = "none";
+            isFormOpen = false; // Tambahan untuk auto-fill
+            stopRfidAutoCheck(); // Tambahan: Stop auto-checking
+            document.getElementById("rfidStatus").textContent = ""; // Clear status
         }
+
+        // FUNGSI BARU UNTUK AUTO-FILL RFID
+        function startRfidAutoCheck() {
+            // Check setiap 2 detik
+            rfidCheckInterval = setInterval(() => {
+                if (isFormOpen) {
+                    checkLastRfidScan();
+                } else {
+                    stopRfidAutoCheck();
+                }
+            }, 2000);
+        }
+
+        function stopRfidAutoCheck() {
+            if (rfidCheckInterval) {
+                clearInterval(rfidCheckInterval);
+                rfidCheckInterval = null;
+            }
+        }
+
+        function checkLastRfidScan() {
+            fetch('/last-rfid-scan', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.rfid_id) {
+                    // Auto-fill RFID input
+                    document.getElementById("rfid").value = data.rfid_id;
+                    document.getElementById("rfidStatus").textContent = "✓ RFID ter-scan: " + data.rfid_id;
+                }
+            })
+            .catch(error => {
+                console.error('Error checking RFID:', error);
+            });
+        }
+        // AKHIR FUNGSI BARU
 
         function formatDate(dateString) {
             if (!dateString) return '-';
@@ -326,9 +388,14 @@
             });
         }
 
-        // Initialize by loading data when the page loads
+        // Load data saat halaman dimuat
         document.addEventListener('DOMContentLoaded', function() {
             loadPegawai();
+        });
+
+        // TAMBAHAN: Cleanup saat halaman ditutup
+        window.addEventListener('beforeunload', function() {
+            stopRfidAutoCheck();
         });
     </script>
 </body>
