@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        REPOSITORY_NAME = 'https://github.com/BangEjak04/acs-docker.git'
-        BRANCH = 'main'
+        REPOSITORY_NAME = 'https://github.com/farisRajendra/WEB-RFID.git'
+        BRANCH = 'master'
     }
 
     stages {
