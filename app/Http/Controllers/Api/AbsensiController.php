@@ -18,6 +18,14 @@ class AbsensiController extends Controller
         return Carbon::now('Asia/Jakarta');
     }
 
+    /**
+     * Generate default timestamp untuk field yang tidak digunakan
+     */
+    private function getDefaultTimestamp($tanggal)
+    {
+        return Carbon::createFromFormat('Y-m-d H:i:s', $tanggal . ' 00:00:01', 'Asia/Jakarta');
+    }
+
     public function store(Request $request)
     {
         Log::info("Memulai proses absensi RFID...");
@@ -80,6 +88,9 @@ class AbsensiController extends Controller
             $toleransiMenit = 15;
             $jamMasukBatas = $jamMasukResmi->copy()->addMinutes($toleransiMenit);
 
+            // Default timestamp untuk field yang tidak digunakan
+            $jamDefault = $this->getDefaultTimestamp($tanggal);
+
             // STEP 1: Cek record absensi hari ini
             $absenHariIni = Absensi::where('pegawai_id', $pegawai->id)
                 ->whereDate('tanggal', $tanggal)
@@ -98,7 +109,7 @@ class AbsensiController extends Controller
                     'pegawai_id' => $pegawai->id,
                     'tanggal' => $tanggal,
                     'jam_masuk' => $wibTime,
-                    'jam_pulang' => null, // NULL untuk menandakan belum pulang
+                    'jam_pulang' => $jamDefault, // Default timestamp untuk absensi masuk
                     'status' => $statusMasuk,
                 ]);
 
@@ -109,7 +120,9 @@ class AbsensiController extends Controller
 
             } else {
                 // STEP 2B: Sudah ada record - Cek apakah sudah pulang
-                if (is_null($absenHariIni->jam_pulang)) {
+                $sudahPulang = $absenHariIni->jam_pulang && $absenHariIni->jam_pulang > $tanggal . ' 00:00:01';
+                
+                if (!$sudahPulang) {
                     // STEP 3: Record ada, belum pulang - ABSENSI PULANG
                     Log::info("Record ditemukan, memproses absensi pulang");
 
@@ -157,8 +170,10 @@ class AbsensiController extends Controller
                     'jam' => $wibDateTime,
                     'status' => $absen->status,
                     'jenis' => $jenisAbsensi,
-                    'jam_masuk' => $absen->jam_masuk ? $absen->jam_masuk->format('H:i:s') : null,
-                    'jam_pulang' => $absen->jam_pulang ? $absen->jam_pulang->format('H:i:s') : null,
+                    'jam_masuk' => $absen->jam_masuk && $absen->jam_masuk > $tanggal . ' 00:00:01' 
+                        ? $absen->jam_masuk->format('H:i:s') : null,
+                    'jam_pulang' => $absen->jam_pulang && $absen->jam_pulang > $tanggal . ' 00:00:01' 
+                        ? $absen->jam_pulang->format('H:i:s') : null,
                 ]
             ]);
 
