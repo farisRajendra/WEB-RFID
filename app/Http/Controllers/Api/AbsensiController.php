@@ -18,12 +18,29 @@ class AbsensiController extends Controller
         return Carbon::now('Asia/Jakarta');
     }
 
-    /**
-     * Generate default timestamp untuk field yang tidak digunakan
-     */
     private function getDefaultTimestamp($tanggal)
     {
         return Carbon::createFromFormat('Y-m-d H:i:s', $tanggal . ' 00:00:01', 'Asia/Jakarta');
+    }
+
+    private function tentukanStatusAkhir($statusMasuk, $pulangNormal)
+    {
+        if ($statusMasuk === 'terlambat') {
+            return $pulangNormal ? 'terlambat' : 'pulang_awal';
+        } elseif ($statusMasuk === 'hadir') {
+            return $pulangNormal ? 'hadir' : 'pulang_awal';
+        } else {
+            return $statusMasuk;
+        }
+    }
+
+    private function getMessagePulang($statusAkhir, $pulangNormal)
+    {
+        if (!$pulangNormal) {
+            return "Absensi pulang lebih awal dari jadwal. Status: {$statusAkhir}";
+        }
+
+        return "Absensi pulang berhasil. Status: {$statusAkhir}";
     }
 
     public function store(Request $request)
@@ -38,127 +55,119 @@ class AbsensiController extends Controller
         Log::info("Request absensi dengan RFID: {$uid}");
 
         try {
-            // Validasi RFID dan Pegawai
-            $rfid = Rfid::with('pegawai')
-                ->whereRaw('BINARY rfid = ?', [$uid])
-                ->first();
+            $rfid = Rfid::with('pegawai')->whereRaw('BINARY rfid = ?', [$uid])->first();
 
             if (!$rfid) {
-                Log::warning("RFID tidak terdaftar: {$uid}");
-                return response()->json([
-                    'success' => false,
-                    'message' => 'RFID belum terdaftar'
-                ], 404);
+                return response()->json(['success' => false, 'message' => 'RFID belum terdaftar'], 404);
             }
 
             $pegawai = $rfid->pegawai;
             if (!$pegawai) {
-                Log::error("Pegawai tidak ditemukan untuk RFID: {$uid}");
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Data pegawai tidak ditemukan'
-                ], 404);
+                return response()->json(['success' => false, 'message' => 'Data pegawai tidak ditemukan'], 404);
             }
 
-            Log::info("Pegawai ditemukan: {$pegawai->nama} (ID: {$pegawai->id})");
-
-            // Setup waktu dan tanggal
             $wibTime = $this->getWibTime();
             $tanggal = $wibTime->format('Y-m-d');
             $wibDateTime = $wibTime->format('Y-m-d H:i:s');
+            $jamSekarang = $wibTime->format('H:i:s');
 
-            Log::info("Waktu Absensi (WIB): {$wibDateTime}");
-
-            // Validasi jam kerja
             $jamKerja = JamKerja::first();
-
             if (!$jamKerja || !$jamKerja->jam_masuk || !$jamKerja->jam_keluar) {
-                Log::error("Jam kerja belum diatur lengkap.");
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Jam kerja belum diatur lengkap, hubungi admin'
-                ], 500);
+                return response()->json(['success' => false, 'message' => 'Jam kerja belum diatur lengkap, hubungi admin'], 500);
             }
 
-            Log::info("Jam kerja ditemukan: masuk {$jamKerja->jam_masuk}, keluar {$jamKerja->jam_keluar}");
-
-            // Setup jam kerja dengan timezone yang benar
             $jamMasukResmi = Carbon::createFromFormat('H:i:s', $jamKerja->jam_masuk, 'Asia/Jakarta');
             $jamKeluarResmi = Carbon::createFromFormat('H:i:s', $jamKerja->jam_keluar, 'Asia/Jakarta');
-            $toleransiMenit = 15;
-            $jamMasukBatas = $jamMasukResmi->copy()->addMinutes($toleransiMenit);
-
-            // Default timestamp untuk field yang tidak digunakan
+            $jamMasukBatas = $jamMasukResmi->copy()->addMinutes(15);
+            $batasWaktuMasukEkstrem = $jamMasukResmi->copy()->addHours(4);
             $jamDefault = $this->getDefaultTimestamp($tanggal);
 
-            // STEP 1: Cek record absensi hari ini
-            $absenHariIni = Absensi::where('pegawai_id', $pegawai->id)
-                ->whereDate('tanggal', $tanggal)
-                ->first();
-
-            DB::beginTransaction();
+            $absenHariIni = Absensi::where('pegawai_id', $pegawai->id)->whereDate('tanggal', $tanggal)->first();
 
             if (!$absenHariIni) {
-                // STEP 2A: Belum ada record - ABSENSI MASUK
-                Log::info("Tidak ada record absensi hari ini, memproses absensi masuk");
-                
-                // Validasi waktu masuk
+                if ($wibTime->gte($batasWaktuMasukEkstrem)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Anda belum absen masuk hari ini. Tidak dapat absen di jam {$jamSekarang} tanpa absen masuk terlebih dahulu.",
+                        'data' => [
+                            'nama' => $pegawai->nama,
+                            'jam_masuk_resmi' => $jamKerja->jam_masuk,
+                            'jam_keluar_resmi' => $jamKerja->jam_keluar,
+                            'waktu_sekarang' => $jamSekarang,
+                            'keterangan' => 'Silakan hubungi admin untuk koreksi absensi'
+                        ]
+                    ], 400);
+                }
+
+                if ($wibTime->gte($jamKeluarResmi)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Tidak dapat absen masuk di jam {$jamSekarang}. Jam kerja telah berakhir pada {$jamKerja->jam_keluar}.",
+                        'data' => [
+                            'nama' => $pegawai->nama,
+                            'jam_masuk_resmi' => $jamKerja->jam_masuk,
+                            'jam_keluar_resmi' => $jamKerja->jam_keluar,
+                            'waktu_sekarang' => $jamSekarang,
+                            'keterangan' => 'Silakan hubungi admin untuk koreksi absensi'
+                        ]
+                    ], 400);
+                }
+
                 $statusMasuk = $wibTime->gt($jamMasukBatas) ? 'terlambat' : 'hadir';
 
+                DB::beginTransaction();
                 $absen = Absensi::create([
                     'pegawai_id' => $pegawai->id,
                     'tanggal' => $tanggal,
                     'jam_masuk' => $wibTime,
-                    'jam_pulang' => $jamDefault, // Default timestamp untuk absensi masuk
+                    'jam_pulang' => $jamDefault,
                     'status' => $statusMasuk,
                 ]);
+                DB::commit();
 
                 $message = $statusMasuk === 'terlambat' ? 'Absensi masuk terlambat' : 'Absensi masuk berhasil';
                 $jenisAbsensi = 'masuk';
 
-                Log::info("Record absensi masuk disimpan. Jam: {$wibDateTime}, Status: {$statusMasuk}");
-
             } else {
-                // STEP 2B: Sudah ada record - Cek apakah sudah pulang
                 $sudahPulang = $absenHariIni->jam_pulang && $absenHariIni->jam_pulang > $tanggal . ' 00:00:01';
-                
+
                 if (!$sudahPulang) {
-                    // STEP 3: Record ada, belum pulang - ABSENSI PULANG
-                    Log::info("Record ditemukan, memproses absensi pulang");
+                    $jamMasukTersimpan = Carbon::parse($absenHariIni->jam_masuk, 'Asia/Jakarta');
+                    $selisihJam = $wibTime->diffInHours($jamMasukTersimpan);
+                    $selisihMenit = $wibTime->diffInMinutes($jamMasukTersimpan);
 
-                    $statusMasukExisting = $absenHariIni->status;
-                    
-                    // Validasi waktu pulang
-                    $pulangNormal = $wibTime->gte($jamKeluarResmi);
-                    
-                    // Tentukan status akhir berdasarkan tabel keputusan
-                    $statusAkhir = $this->tentukanStatusAkhir($statusMasukExisting, $pulangNormal);
+                    if ($selisihJam < 4) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => "Anda sudah absen masuk pada {$jamMasukTersimpan->format('H:i')}. Minimal 4 jam untuk absen pulang (sisa: " . (4 - $selisihJam) . " jam)",
+                            'data' => [
+                                'nama' => $pegawai->nama,
+                                'jam_masuk' => $jamMasukTersimpan->format('H:i'),
+                                'sisa_jam' => 4 - $selisihJam,
+                                'sisa_menit' => (4 * 60) - $selisihMenit % 60,
+                                'waktu_sekarang' => $jamSekarang
+                            ]
+                        ], 400);
+                    }
 
-                    // Update record yang sama
+                    DB::beginTransaction();
+                    $statusAkhir = $this->tentukanStatusAkhir($absenHariIni->status, $wibTime->gte($jamKeluarResmi));
                     $absenHariIni->update([
                         'jam_pulang' => $wibTime,
                         'status' => $statusAkhir,
                     ]);
-
-                    $message = $this->getMessagePulang($statusAkhir, $pulangNormal);
+                    $message = $this->getMessagePulang($statusAkhir, $wibTime->gte($jamKeluarResmi));
                     $jenisAbsensi = 'pulang';
-                    $absen = $absenHariIni->fresh(); // Refresh data
-
-                    Log::info("Record absensi pulang diupdate. Jam: {$wibDateTime}, Status: {$statusAkhir}");
+                    $absen = $absenHariIni->fresh();
+                    DB::commit();
 
                 } else {
-                    // STEP 2B-2: Sudah lengkap (masuk dan pulang)
-                    Log::warning("Absensi sudah lengkap untuk hari ini");
-                    DB::rollBack();
                     return response()->json([
                         'success' => false,
                         'message' => 'Anda sudah melakukan absensi masuk dan pulang hari ini'
                     ], 400);
                 }
             }
-
-            DB::commit();
-            Log::info("Absensi selesai disimpan ke database.");
 
             return response()->json([
                 'success' => true,
@@ -170,65 +179,22 @@ class AbsensiController extends Controller
                     'jam' => $wibDateTime,
                     'status' => $absen->status,
                     'jenis' => $jenisAbsensi,
-                    'jam_masuk' => $absen->jam_masuk && $absen->jam_masuk > $tanggal . ' 00:00:01' 
-                        ? $absen->jam_masuk->format('H:i:s') : null,
-                    'jam_pulang' => $absen->jam_pulang && $absen->jam_pulang > $tanggal . ' 00:00:01' 
-                        ? $absen->jam_pulang->format('H:i:s') : null,
+                    'jam_masuk' => $absen->jam_masuk && $absen->jam_masuk > $tanggal . ' 00:00:01' ? Carbon::parse($absen->jam_masuk)->format('H:i:s') : null,
+                    'jam_pulang' => $absen->jam_pulang && $absen->jam_pulang > $tanggal . ' 00:00:01' ? Carbon::parse($absen->jam_pulang)->format('H:i:s') : null,
+                    'jam_kerja' => [
+                        'masuk' => $jamKerja->jam_masuk,
+                        'keluar' => $jamKerja->jam_keluar,
+                    ]
                 ]
-            ]);
+            ], 200);
 
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error("Error dalam proses absensi: " . $e->getMessage());
+            Log::error("Terjadi kesalahan saat absensi: " . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan dalam sistem'
+                'message' => 'Terjadi kesalahan saat memproses absensi. Coba lagi nanti.'
             ], 500);
-        }
-    }
-
-    /**
-     * Tentukan status akhir berdasarkan tabel keputusan
-     * 
-     * @param string $statusMasuk
-     * @param bool $pulangNormal
-     * @return string
-     */
-    private function tentukanStatusAkhir($statusMasuk, $pulangNormal)
-    {
-        // Tabel keputusan status
-        if ($statusMasuk === 'hadir') {
-            return $pulangNormal ? 'hadir' : 'pulang_awal';
-        }
-        
-        if ($statusMasuk === 'terlambat') {
-            return $pulangNormal ? 'terlambat' : 'terlambat_dan_pulang_awal';  
-        }
-
-        // Fallback (seharusnya tidak terjadi)
-        return $statusMasuk;
-    }
-
-    /**
-     * Generate message untuk absensi pulang
-     * 
-     * @param string $statusAkhir
-     * @param bool $pulangNormal  
-     * @return string
-     */
-    private function getMessagePulang($statusAkhir, $pulangNormal)
-    {
-        switch ($statusAkhir) {
-            case 'hadir':
-                return 'Absensi pulang berhasil';
-            case 'pulang_awal':
-                return 'Absensi pulang awal berhasil';
-            case 'terlambat':
-                return 'Absensi pulang berhasil (masuk terlambat)';
-            case 'terlambat_dan_pulang_awal':
-                return 'Absensi pulang awal berhasil (masuk terlambat)';
-            default:
-                return 'Absensi pulang berhasil';
         }
     }
 }

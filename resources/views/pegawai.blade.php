@@ -117,6 +117,293 @@
             margin-top: 5px;
             min-height: 15px;
         }
+
+        /* MODERN POPUP STYLES */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Success Modal */
+        .success-modal {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.7) translateY(50px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .success-modal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: #4285f4;
+        }
+
+        .modal-overlay.active .success-modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: #4285f4;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+
+        .success-icon::after {
+            content: '✓';
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(66, 133, 244, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); }
+        }
+
+        /* Error Modal */
+        .error-modal {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.7) translateY(50px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .error-modal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: #f44336;
+        }
+
+        .modal-overlay.active .error-modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .error-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: #f44336;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .error-icon::after {
+            content: '✕';
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Confirm Modal */
+        .confirm-modal {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.7) translateY(50px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .confirm-modal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: #0077b6;
+        }
+
+        .modal-overlay.active .confirm-modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .confirm-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: #0077b6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirm-icon::after {
+            content: '?';
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .modal-message {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.5;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .popup-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .popup-btn-primary {
+            background: #4285f4;
+            color: white;
+        }
+
+        .popup-btn-success {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .popup-btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .popup-btn-secondary {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 2px solid #e9ecef;
+        }
+
+        .popup-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .popup-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .popup-close-btn:hover {
+            color: #333;
+        }
+
+        /* Loading Modal */
+        .loading-modal {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 300px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.7) translateY(50px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-overlay.active .loading-modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4285f4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -155,21 +442,127 @@
         <button class="close-btn" onclick="closeForm()">Tutup</button>
     </div>
 
+    <!-- POPUP MODALS -->
+    <!-- Success Modal -->
+    <div id="successModal" class="modal-overlay">
+        <div class="success-modal">
+            <button class="popup-close-btn" onclick="closePopup('successModal')">&times;</button>
+            <div class="success-icon"></div>
+            <h2 class="modal-title">Berhasil!</h2>
+            <p class="modal-message" id="successMessage">Data Anda telah berhasil disimpan.</p>
+            <div class="modal-buttons">
+                <button class="popup-btn popup-btn-success" onclick="closePopup('successModal')">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="errorModal" class="modal-overlay">
+        <div class="error-modal">
+            <button class="popup-close-btn" onclick="closePopup('errorModal')">&times;</button>
+            <div class="error-icon"></div>
+            <h2 class="modal-title">Terjadi Kesalahan!</h2>
+            <p class="modal-message" id="errorMessage">Maaf, terjadi kesalahan saat memproses data Anda.</p>
+            <div class="modal-buttons">
+                <button class="popup-btn popup-btn-danger" onclick="closePopup('errorModal')">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="confirm-modal">
+            <button class="popup-close-btn" onclick="closePopup('confirmModal')">&times;</button>
+            <div class="confirm-icon"></div>
+            <h2 class="modal-title">Konfirmasi</h2>
+            <p class="modal-message" id="confirmMessage">Apakah Anda yakin ingin menghapus data ini?</p>
+            <div class="modal-buttons">
+                <button class="popup-btn popup-btn-danger" onclick="confirmDelete()">Ya, Hapus</button>
+                <button class="popup-btn popup-btn-secondary" onclick="closePopup('confirmModal')">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="modal-overlay">
+        <div class="loading-modal">
+            <div class="spinner"></div>
+            <h2 class="modal-title">Memproses...</h2>
+            <p class="modal-message">Mohon tunggu sebentar</p>
+        </div>
+    </div>
+
     <script>
         // Get CSRF token from meta tag
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         
-        // RFID Auto-fill variables - HANYA TAMBAHAN INI
+        // RFID Auto-fill variables
         let rfidCheckInterval = null;
         let isFormOpen = false;
+        let deleteId = null; // For confirmation modal
+        
+        // POPUP FUNCTIONS
+        function showSuccessPopup(message = "Data berhasil disimpan!") {
+            document.getElementById('successMessage').textContent = message;
+            document.getElementById('successModal').classList.add('active');
+        }
+
+        function showErrorPopup(message = "Terjadi kesalahan saat memproses data!") {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorModal').classList.add('active');
+        }
+
+        function showConfirmPopup(message = "Apakah Anda yakin ingin menghapus data ini?") {
+            document.getElementById('confirmMessage').textContent = message;
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        function showLoadingPopup() {
+            document.getElementById('loadingModal').classList.add('active');
+        }
+
+        function closePopup(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function confirmDelete() {
+            closePopup('confirmModal');
+            showLoadingPopup();
+            
+            fetch(`/pegawai/${deleteId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                closePopup('loadingModal');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                showSuccessPopup(data.message || "Pegawai berhasil dihapus!");
+                loadPegawai();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorPopup("Terjadi kesalahan saat menghapus data!");
+            });
+        }
         
         function openForm(id = null) {
             document.getElementById("pegawaiForm").style.display = "block";
-            isFormOpen = true; // Tambahan untuk auto-fill
+            isFormOpen = true;
             
             if (id) {
-                // Mode edit: Ambil data dari server
                 document.getElementById("formTitle").innerText = "Edit Pegawai";
+                showLoadingPopup();
+                
                 fetch(`/pegawai/${id}`, {
                     method: 'GET',
                     headers: {
@@ -178,6 +571,7 @@
                     }
                 })
                 .then(response => {
+                    closePopup('loadingModal');
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
                     }
@@ -192,10 +586,9 @@
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert("Terjadi kesalahan saat memuat data pegawai!");
+                    showErrorPopup("Terjadi kesalahan saat memuat data pegawai!");
                 });
             } else {
-                // Mode tambah: Reset form
                 document.getElementById("formTitle").innerText = "Tambah Pegawai";
                 document.getElementById("pegawaiId").value = "";
                 document.getElementById("nama").value = "";
@@ -203,21 +596,18 @@
                 document.getElementById("tanggal_lahir").value = "";
                 document.getElementById("rfid").value = "";
                 
-                // TAMBAHAN: Start auto-checking untuk RFID
                 startRfidAutoCheck();
             }
         }
 
         function closeForm() {
             document.getElementById("pegawaiForm").style.display = "none";
-            isFormOpen = false; // Tambahan untuk auto-fill
-            stopRfidAutoCheck(); // Tambahan: Stop auto-checking
-            document.getElementById("rfidStatus").textContent = ""; // Clear status
+            isFormOpen = false;
+            stopRfidAutoCheck();
+            document.getElementById("rfidStatus").textContent = "";
         }
 
-        // FUNGSI BARU UNTUK AUTO-FILL RFID
         function startRfidAutoCheck() {
-            // Check setiap 2 detik
             rfidCheckInterval = setInterval(() => {
                 if (isFormOpen) {
                     checkLastRfidScan();
@@ -245,7 +635,6 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.rfid_id) {
-                    // Auto-fill RFID input
                     document.getElementById("rfid").value = data.rfid_id;
                     document.getElementById("rfidStatus").textContent = "✓ RFID ter-scan: " + data.rfid_id;
                 }
@@ -254,7 +643,6 @@
                 console.error('Error checking RFID:', error);
             });
         }
-        // AKHIR FUNGSI BARU
 
         function formatDate(dateString) {
             if (!dateString) return '-';
@@ -272,11 +660,13 @@
             const tanggal_lahir = document.getElementById("tanggal_lahir").value;
             const rfid = document.getElementById("rfid").value;
 
-            // Basic validation
             if (!nama || !jabatan || !tanggal_lahir) {
-                alert("Mohon isi semua field yang diperlukan!");
+                showErrorPopup("Mohon isi semua field yang diperlukan!");
                 return;
             }
+
+            showLoadingPopup();
+            closeForm();
 
             const data = { nama, jabatan, tanggal_lahir, rfid };
             const url = id ? `/pegawai/${id}` : '/pegawai/store';
@@ -293,6 +683,7 @@
                 body: JSON.stringify(data)
             })
             .then(response => {
+                closePopup('loadingModal');
                 if (!response.ok) {
                     return response.text().then(text => {
                         throw new Error(`Server error: ${response.status} - ${text}`);
@@ -301,13 +692,12 @@
                 return response.json();
             })
             .then(data => {
-                alert(data.message || "Data berhasil disimpan!");
-                closeForm();
+                showSuccessPopup(data.message || "Data berhasil disimpan!");
                 loadPegawai();
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert("Terjadi kesalahan saat menyimpan data: " + error.message);
+                showErrorPopup("Terjadi kesalahan saat menyimpan data: " + error.message);
             });
         }
 
@@ -347,36 +737,13 @@
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert("Terjadi kesalahan saat memuat data!");
+                showErrorPopup("Terjadi kesalahan saat memuat data!");
             });
         }
 
         function deletePegawai(id) {
-            if (confirm("Apakah Anda yakin ingin menghapus pegawai ini?")) {
-                fetch(`/pegawai/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    alert(data.message || "Pegawai berhasil dihapus!");
-                    loadPegawai();
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert("Terjadi kesalahan saat menghapus data!");
-                });
-            }
+            deleteId = id;
+            showConfirmPopup("Apakah Anda yakin ingin menghapus pegawai ini? Tindakan ini tidak dapat dibatalkan.");
         }
 
         function searchTable() {
@@ -388,12 +755,30 @@
             });
         }
 
+        // Close popup when clicking overlay
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+
+        // Close popup with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+        });
+
         // Load data saat halaman dimuat
         document.addEventListener('DOMContentLoaded', function() {
             loadPegawai();
         });
 
-        // TAMBAHAN: Cleanup saat halaman ditutup
+        // Cleanup saat halaman ditutup
         window.addEventListener('beforeunload', function() {
             stopRfidAutoCheck();
         });
