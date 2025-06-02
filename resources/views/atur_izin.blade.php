@@ -85,6 +85,175 @@
             color: red;
             font-weight: bold;
         }
+
+        /* MODERN POPUP STYLES */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Success Modal */
+        .success-modal {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.7) translateY(50px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .success-modal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: #28a745;
+        }
+
+        .modal-overlay.active .success-modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: #28a745;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+
+        .success-icon::after {
+            content: '✓';
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+        }
+
+        /* Error Modal */
+        .error-modal {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.7) translateY(50px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .error-modal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: #f44336;
+        }
+
+        .modal-overlay.active .error-modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .error-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: #f44336;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .error-icon::after {
+            content: '✗';
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .modal-message {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .modal-close-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .error-modal .modal-close-btn {
+            background: #f44336;
+        }
+
+        .error-modal .modal-close-btn:hover {
+            background: #d32f2f;
+        }
     </style>
 </head>
 <body>
@@ -124,7 +293,7 @@
 
     {{-- Form input izin --}}
     @if(isset($pegawai_tidak_absen) && $pegawai_tidak_absen->count() > 0)
-    <form method="POST" action="{{ route('izin.store') }}">
+    <form method="POST" action="{{ route('izin.store') }}" id="izinForm">
         @csrf
         <input type="hidden" name="tanggal" value="{{ $tanggal ?? date('Y-m-d') }}">
 
@@ -147,7 +316,7 @@
             </select>
         </div>
 
-        <button type="submit" class="submit-btn">Submit</button>
+        <button type="button" class="submit-btn" onclick="submitForm()">Submit</button>
     </form>
     @else
         <p style="margin-top: 40px; color: green;">
@@ -192,5 +361,75 @@
         </tbody>
     </table>
 </div>
+
+<!-- Success Modal -->
+<div class="modal-overlay" id="successModal">
+    <div class="success-modal">
+        <div class="success-icon"></div>
+        <h2 class="modal-title">Berhasil!</h2>
+        <p class="modal-message">Data izin berhasil disimpan.</p>
+        <button class="modal-close-btn" onclick="closeModal('successModal')">OK</button>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal-overlay" id="errorModal">
+    <div class="error-modal">
+        <div class="error-icon"></div>
+        <h2 class="modal-title">Gagal!</h2>
+        <p class="modal-message" id="errorMessage">Terjadi kesalahan saat menyimpan data.</p>
+        <button class="modal-close-btn" onclick="closeModal('errorModal')">OK</button>
+    </div>
+</div>
+
+<script>
+    function showModal(modalId) {
+        document.getElementById(modalId).classList.add('active');
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+
+    function submitForm() {
+        const pegawaiId = document.getElementById('pegawai_id').value;
+        const keterangan = document.getElementById('keterangan').value;
+        
+        if (!pegawaiId) {
+            document.getElementById('errorMessage').textContent = 'Silakan pilih pegawai terlebih dahulu!';
+            showModal('errorModal');
+            return;
+        }
+
+        if (!keterangan) {
+            document.getElementById('errorMessage').textContent = 'Silakan pilih keterangan terlebih dahulu!';
+            showModal('errorModal');
+            return;
+        }
+
+        // Jika validasi berhasil, langsung submit form
+        // Popup akan ditampilkan oleh Laravel session setelah redirect
+        document.getElementById('izinForm').submit();
+    }
+
+    // Jika ada session success dari Laravel, tampilkan popup
+    @if(session('success'))
+        window.addEventListener('load', function() {
+            showModal('successModal');
+        });
+    @endif
+
+    // Jika ada error dari Laravel, tampilkan popup
+    @if($errors->any())
+        window.addEventListener('load', function() {
+            let errorMessages = [];
+            @foreach($errors->all() as $error)
+                errorMessages.push('{{ $error }}');
+            @endforeach
+            document.getElementById('errorMessage').innerHTML = errorMessages.join('<br>');
+            showModal('errorModal');
+        });
+    @endif
+</script>
 </body>
 </html>
