@@ -317,7 +317,7 @@
             })
         })
         .then(response => response.json())
-        .then(data => {
+         .then(data => {
             if (data.success || data.message.includes('berhasil')) {
                 showModal('successModal');
             } else {

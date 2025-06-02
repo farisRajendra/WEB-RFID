@@ -10,7 +10,6 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    // Build the project
                     echo 'Building...'
                     git branch: "$BRANCH", url: "$REPOSITORY_NAME"
                     sh 'cp .env.example .env'
