@@ -408,7 +408,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Sistem Manajemen Pegawai</h1>
+        <h1>System Manajemen Pegawai</h1>
         <div class="header">
             <button class="add-btn" onclick="openForm()">➕ Tambah Pegawai</button>
             <input type="text" id="search" placeholder="Cari Nama Pegawai" onkeyup="searchTable()">
