@@ -46,6 +46,9 @@
             border-radius: 5px;
             cursor: pointer;
         }
+        .filter-container button:hover {
+            background: #0056b3;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -61,8 +64,40 @@
             color: white;
             cursor: pointer;
         }
+        th:hover {
+            background: #0056b3;
+        }
         tbody tr:nth-child(even) {
             background-color: #f9f9f9;
+        }
+        tbody tr:hover {
+            background-color: #e8f4f8;
+        }
+        .status-hadir {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        .status-izin {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        .status-alpha {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        .durasi-info {
+            color: #007BFF;
+            font-weight: 600;
+            font-size: 0.9em;
         }
     </style>
 </head>
@@ -119,6 +154,28 @@
         return datetimeStr; // jika sudah jam saja
     }
 
+    // Fungsi untuk mendapatkan class CSS berdasarkan status
+    function getStatusClass(status) {
+        switch(status.toLowerCase()) {
+            case 'hadir':
+                return 'status-hadir';
+            case 'izin':
+                return 'status-izin';
+            case 'alpha':
+                return 'status-alpha';
+            default:
+                return '';
+        }
+    }
+
+    // Fungsi untuk format keterangan dengan styling khusus untuk durasi
+    function formatKeterangan(keterangan) {
+        if (keterangan && keterangan.includes('Durasi kerja:')) {
+            return `<span class="durasi-info">${keterangan}</span>`;
+        }
+        return keterangan || '-';
+    }
+
     function tampilkanLaporan() {
         const tableBody = document.getElementById("tableBody");
         tableBody.innerHTML = "";
@@ -144,6 +201,8 @@
         filteredData.forEach((item, index) => {
             const jamMasuk = ambilJam(item.jamMasuk);
             const jamPulang = ambilJam(item.jamPulang);
+            const statusClass = getStatusClass(item.status);
+            const keterangan = formatKeterangan(item.keterangan);
 
             const row = `<tr>
                 <td>${index + 1}</td>
@@ -152,8 +211,8 @@
                 <td>${item.tanggal}</td>
                 <td>${jamMasuk}</td>
                 <td>${jamPulang}</td>
-                <td>${item.status}</td>
-                <td>${item.keterangan || '-'}</td>
+                <td><span class="${statusClass}">${item.status}</span></td>
+                <td>${keterangan}</td>
             </tr>`;
             tableBody.innerHTML += row;
         });
